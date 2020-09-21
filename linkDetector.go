@@ -15,8 +15,9 @@ func main() {
 	var downLinks []string
 
 	channel := make(chan models.LinkStatus)
-
+	//version flag
 	flagVersion := flag.Bool("version", false, "version")
+	//Create check sub-command
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//Parse command-line args
 	flag.Parse()
@@ -48,10 +49,10 @@ func main() {
 		i := 0
 		for i < len(links) {
 			ls := <-channel
-			if ls.Live == false {
-				downLinks = append(downLinks, ls.Url)
+			if ls.GetLiveStatus() == false {
+				downLinks = append(downLinks, ls.GetURL())
 			} else {
-				upLinks = append(upLinks, ls.Url)
+				upLinks = append(upLinks, ls.GetURL())
 			}
 			i++
 		}

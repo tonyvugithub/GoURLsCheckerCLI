@@ -52,10 +52,10 @@ func CheckLink(link string, c chan models.LinkStatus) {
 
 	if err != nil {
 		color.Gray.Println("[ERROR] " + link)
-		c <- models.LinkStatus{
-			Url:  link,
-			Live: false,
-		}
+		ls := models.LinkStatus{}
+		ls.SetURL(link)
+		ls.SetLiveStatus(false)
+		c <- ls
 		return
 	}
 
@@ -68,8 +68,8 @@ func CheckLink(link string, c chan models.LinkStatus) {
 		color.Gray.Println(statusFormatted, link)
 	}
 
-	c <- models.LinkStatus{
-		Url:  link,
-		Live: true,
-	}
+	ls := models.LinkStatus{}
+	ls.SetURL(link)
+	ls.SetLiveStatus(true)
+	c <- ls
 }
