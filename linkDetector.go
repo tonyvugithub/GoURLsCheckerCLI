@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
 
 	"github.com/gookit/color"
+	"github.com/tonyvugithub/GoURLsCheckerCLI/helpers"
+	"github.com/tonyvugithub/GoURLsCheckerCLI/outputs"
 )
 
 //Set up link count info "class"
@@ -64,38 +65,6 @@ func checkLink(link string, c chan linkStatus) {
 	}
 }
 
-//Function to read content from a file
-func readFromFile(filename string) string {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
-	return string(data)
-}
-
-//Function to check if user provided the correct number of args
-func checkValidArgsLen(args []string) {
-	if len(args) == 0 {
-		displayHelpPanel()
-		os.Exit(0)
-	}
-	if len(args) > 1 {
-		fmt.Printf("Too many arguments! Expected exactly 1, Received %+v\n", len(args))
-		os.Exit(1)
-	}
-}
-
-func displayHelpPanel() {
-	fmt.Println("\n***Usage of link detector***")
-	fmt.Print("\nGeneral form:\t")
-	color.Yellow.Print("linkDetector [flag-options] [file-name]\n\n")
-	fmt.Print("Flag options:\n\n")
-	color.Yellow.Println("\tOption 1")
-	color.Yellow.Println("\tOption 2")
-	color.Yellow.Println("\tOption 3")
-}
-
 //Function to parse a valid URL
 func parseLinks(data string) []string {
 	//Create an regExp object
@@ -125,7 +94,7 @@ func main() {
 	}
 
 	if len(os.Args) < 2 {
-		displayHelpPanel()
+		outputs.DisplayHelpPanel()
 		os.Exit(0)
 	}
 
@@ -135,9 +104,9 @@ func main() {
 
 		checkCmd.Parse(flags)
 		args := checkCmd.Args()
-		checkValidArgsLen(args)
+		helpers.CheckValidArgsLen(args)
 
-		links := parseLinks(readFromFile(args[0]))
+		links := parseLinks(helpers.ReadFromFile(args[0]))
 
 		for _, link := range links {
 			go checkLink(link, channel)
