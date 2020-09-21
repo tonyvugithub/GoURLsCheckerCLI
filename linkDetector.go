@@ -38,9 +38,10 @@ func (pt *linkCountInfo) setTotalLink(total int) {
 
 //Function to check whether a link is broken
 func checkLink(link string, c chan linkStatus) {
-	_, err := http.Get(link)
+	resp, err := http.Get(link)
+
 	if err != nil {
-		color.Red.Println(link, "could be broken!")
+		color.Gray.Println("[ERROR] " + link)
 		c <- linkStatus{
 			url:  link,
 			live: false,
@@ -48,7 +49,15 @@ func checkLink(link string, c chan linkStatus) {
 		return
 	}
 
-	color.Green.Println(link, "is up")
+	statusFormatted := "[" + fmt.Sprint(resp.StatusCode, " ", http.StatusText(resp.StatusCode)) + "]"
+	if resp.StatusCode == 200 {
+		color.Green.Println(statusFormatted, link)
+	} else if resp.StatusCode == 400 || resp.StatusCode == 404 {
+		color.Red.Println(statusFormatted, link)
+	} else {
+		color.Gray.Println(statusFormatted, link)
+	}
+
 	c <- linkStatus{
 		url:  link,
 		live: true,
@@ -67,10 +76,24 @@ func readFromFile(filename string) string {
 
 //Function to check if user provided the correct number of args
 func checkValidArgsLen(args []string) {
+	if len(args) == 0 {
+		displayHelpPanel()
+		os.Exit(0)
+	}
 	if len(args) > 1 {
 		fmt.Printf("Too many arguments! Expected exactly 1, Received %+v\n", len(args))
 		os.Exit(1)
 	}
+}
+
+func displayHelpPanel() {
+	fmt.Println("\n***Usage of link detector***")
+	fmt.Print("\nGeneral form:\t")
+	color.Yellow.Print("linkDetector [flag-options] [file-name]\n\n")
+	fmt.Print("Flag options:\n\n")
+	color.Yellow.Println("\tOption 1")
+	color.Yellow.Println("\tOption 2")
+	color.Yellow.Println("\tOption 3")
 }
 
 //Function to parse a valid URL
