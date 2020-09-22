@@ -48,7 +48,7 @@ func ParseLinks(data string) []string {
 
 //CheckLink ...
 func CheckLink(link string, c chan models.LinkStatus) {
-	resp, err := http.Get(link)
+	resp, err := http.Head(link)
 
 	if err != nil {
 		color.Gray.Println("[ERROR] " + link)
