@@ -1,6 +1,6 @@
 # GO URLs CHECKER CLI
 
-**Description**: This is a basic URL checker written in GO. The app allows users to pass in a file name as an command-line argument, then it would extract all valid URLs and run status check on those links.
+**Description**: This is a basic URL checker written in GO. The app allows users to pass in a file name as a command-line argument, then it would extract all valid URLs and run status check on those urls.
 
 ## How to use? 
 1. Build binary file:
