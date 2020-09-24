@@ -16,13 +16,14 @@ func main() {
 
 	channel := make(chan models.LinkStatus)
 	//version flag
-	flagVersion := flag.Bool("version", false, "version")
+	flagVersionLong := flag.Bool("version", false, "version")
+	flagVersionShort := flag.Bool("v", false, "version")
 	//Create check sub-command
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//Parse command-line args
 	flag.Parse()
 
-	if *flagVersion {
+	if *flagVersionLong || *flagVersionShort {
 		fmt.Println("Print version")
 		return
 	}
