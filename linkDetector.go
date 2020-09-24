@@ -47,6 +47,7 @@ func main() {
 			go helpers.CheckLink(link, channel)
 		}
 
+		//Receive the result from checkLink and update the link to correspondent lists
 		i := 0
 		for i < len(links) {
 			ls := <-channel
