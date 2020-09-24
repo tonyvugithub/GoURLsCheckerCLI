@@ -24,7 +24,7 @@ func main() {
 	flag.Parse()
 
 	if *flagVersionLong || *flagVersionShort {
-		fmt.Println("Print version")
+		outputs.PrintVersion()
 		return
 	}
 
