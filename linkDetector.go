@@ -54,15 +54,13 @@ func main() {
 					go helpers.CheckLink(link, channel)
 				}
 				//Receive the result from checkLink and update the link to correspondent lists
-				i := 0
-				for i < len(links) {
+				for range links {
 					ls := <-channel
 					if ls.GetLiveStatus() == false {
 						downLinks = append(downLinks, ls.GetURL())
 					} else {
 						upLinks = append(upLinks, ls.GetURL())
 					}
-					i++
 				}
 			}(file)
 		}
