@@ -46,9 +46,9 @@ func main() {
 
 		for _, file := range args {
 			wg.Add(1)
-			go func(file string) {
+			go func(f string) {
 				defer wg.Done()
-				links := helpers.ParseLinks(helpers.ReadFromFile(file))
+				links := helpers.ParseLinks(helpers.ReadFromFile(f))
 
 				for _, link := range links {
 					go helpers.CheckLink(link, channel)
@@ -64,7 +64,7 @@ func main() {
 					}
 					i++
 				}
-			}(s)
+			}(file)
 		}
 
 		wg.Wait()
