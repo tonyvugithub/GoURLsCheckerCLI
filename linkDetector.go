@@ -44,11 +44,11 @@ func main() {
 
 		var wg sync.WaitGroup
 
-		for i := range args {
+		for _, s := range args {
 			wg.Add(1)
-			go func() {
+			go func(str string) {
 				defer wg.Done()
-				links := helpers.ParseLinks(helpers.ReadFromFile(args[i]))
+				links := helpers.ParseLinks(helpers.ReadFromFile(str))
 
 				for _, link := range links {
 					go helpers.CheckLink(link, channel)
@@ -64,11 +64,11 @@ func main() {
 					}
 					i++
 				}
-			}()
+			}(s)
 		}
 
 		wg.Wait()
-		
+
 		fmt.Println("Total links:", len(upLinks)+len(downLinks))
 		fmt.Println("Up links:", len(upLinks))
 		fmt.Println("Down links:", len(downLinks))
