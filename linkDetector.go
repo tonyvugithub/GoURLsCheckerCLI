@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sync"
 
 	"github.com/tonyvugithub/GoURLsCheckerCLI/helpers"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/models"
@@ -39,27 +40,36 @@ func main() {
 
 		checkCmd.Parse(flags)
 		args := checkCmd.Args()
-		helpers.CheckValidArgsLen(args)
+		//helpers.CheckValidArgsLen(args)
 
-		links := helpers.ParseLinks(helpers.ReadFromFile(args[0]))
+		var wg sync.WaitGroup
 
-		for _, link := range links {
-			go helpers.CheckLink(link, channel)
+		for i := range args {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				links := helpers.ParseLinks(helpers.ReadFromFile(args[i]))
+
+				for _, link := range links {
+					go helpers.CheckLink(link, channel)
+				}
+				//Receive the result from checkLink and update the link to correspondent lists
+				i := 0
+				for i < len(links) {
+					ls := <-channel
+					if ls.GetLiveStatus() == false {
+						downLinks = append(downLinks, ls.GetURL())
+					} else {
+						upLinks = append(upLinks, ls.GetURL())
+					}
+					i++
+				}
+			}()
 		}
 
-		//Receive the result from checkLink and update the link to correspondent lists
-		i := 0
-		for i < len(links) {
-			ls := <-channel
-			if ls.GetLiveStatus() == false {
-				downLinks = append(downLinks, ls.GetURL())
-			} else {
-				upLinks = append(upLinks, ls.GetURL())
-			}
-			i++
-		}
-
-		fmt.Println("Total links:", len(links))
+		wg.Wait()
+		
+		fmt.Println("Total links:", len(upLinks)+len(downLinks))
 		fmt.Println("Up links:", len(upLinks))
 		fmt.Println("Down links:", len(downLinks))
 	default:
