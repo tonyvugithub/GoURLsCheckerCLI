@@ -37,4 +37,4 @@
     ./linkDetector check -d -r [directory-path]
    ```
 
-**Note: the order of flags does not matter but all flag need to follow main command and before file path / directory path arguments**
+**Note: the order of flags does not matter but all flags need to follow main command and before any file path / directory path arguments**
