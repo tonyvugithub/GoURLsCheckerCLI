@@ -21,3 +21,7 @@
    ```go
     ./linkDetector -v or -version
    ```
+3. Check multiple files:
+   ```go
+    ./linkDetector check [file-name-1] [file-name-2] ... [file-name-nth]
+   ```
