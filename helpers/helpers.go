@@ -3,6 +3,7 @@ package helpers
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -10,29 +11,16 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/models"
-	"github.com/tonyvugithub/GoURLsCheckerCLI/outputs"
 )
 
 //ReadFromFile ...
 func ReadFromFile(filename string) string {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Println("Error:", err)
+		log.Fatal(err)
 		os.Exit(1)
 	}
 	return string(data)
-}
-
-//CheckValidArgsLen ...
-func CheckValidArgsLen(args []string) {
-	if len(args) == 0 {
-		outputs.DisplayHelpPanel()
-		os.Exit(1)
-	}
-	if len(args) > 1 {
-		fmt.Printf("Too many arguments! Expected exactly 1, Received %+v\n", len(args))
-		os.Exit(1)
-	}
 }
 
 //ParseLinks ...

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -68,7 +69,7 @@ func main() {
 				//Read all file from the directory path
 				files, err := ioutil.ReadDir(dirPath)
 				if err != nil {
-					fmt.Println("Cannot read", dirPath)
+					log.Fatal(err)
 					os.Exit(1)
 				}
 				for _, file := range files {
@@ -98,7 +99,7 @@ func main() {
 		wg.Wait()
 
 		if *reportFlag && (*fileFlag || *dirFlag) {
-			fmt.Println("Printing report...")
+			writeReportToFile()
 		} else {
 			fmt.Println("Invalid format!!! Please try again!!!")
 		}
@@ -136,5 +137,35 @@ func checkByFilepath(filepath string, channel chan models.LinkStatus) {
 			summary.RecordDownLink(ls.GetURL())
 		}
 		i++
+	}
+}
+
+func writeReportToFile() {
+	f, err := os.OpenFile("report.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	numUpLinks := summary.GetNumUpLinks()
+	numDownLinks := summary.GetNumDownLinks()
+
+	f.WriteString("CHECK REPORT\n\n")
+
+	f.WriteString("Total number of links checked: " + fmt.Sprint(numUpLinks+numDownLinks) + "\n")
+	f.WriteString("Total number of up links: " + fmt.Sprint(numUpLinks) + "\n")
+	f.WriteString("Total number of down links: " + fmt.Sprint(numDownLinks) + "\n")
+
+	f.WriteString("\nDOWN LINKS list:\n")
+	for _, link := range summary.GetDownLinks() {
+		f.WriteString(link + "\n")
+	}
+
+	f.WriteString("\nDOWN LINKS list:\n")
+	for _, link := range summary.GetUpLinks() {
+		f.WriteString(link + "\n")
+	}
+
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
 	}
 }
