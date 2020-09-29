@@ -9,7 +9,7 @@
    ``` 
 2. Run the file:
    ```go
-      ./linkDetector check [file-name]
+      ./linkDetector check -f [file-name]
    ```
 
 ## Features
@@ -23,5 +23,9 @@
    ```
 3. Check multiple files:
    ```go
-    ./linkDetector check [file-name-1] [file-name-2] ... [file-name-nth]
+    ./linkDetector check -f [file-name-1] [file-name-2] ... [file-name-nth]
+   ```
+4. Check all files in single or multiple directories:
+   ```go
+    ./linkDetector check -d [directory-path-1] [directory-path-2] ... [directory-path-nth]
    ```
