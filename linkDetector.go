@@ -29,7 +29,7 @@ func main() {
 	//Parse command-line args
 	flag.Parse()
 
-	//If there is only program name as argument
+	//If there is only program name as argument, print help panel
 	if len(os.Args) < 2 {
 		outputs.DisplayHelpPanel()
 		os.Exit(0)
@@ -37,6 +37,7 @@ func main() {
 
 	//Check if version flag was provided
 	if *flagVersionLong || *flagVersionShort {
+		//If exactly 2 arguments, print the name and version of the app
 		if len(os.Args) == 2 {
 			outputs.PrintVersion()
 			os.Exit(0)
@@ -87,14 +88,16 @@ func main() {
 					checkByFilepath(f, channel)
 				}(file)
 			}
+			//Any other format would be invalid
 		} else {
 			fmt.Println("Invalid format!!! Please try again!!!")
 		}
+
 		wg.Wait()
 
-		fmt.Println("Total links:", len(upLinks)+len(downLinks))
+		/* fmt.Println("Total links:", len(upLinks)+len(downLinks))
 		fmt.Println("Up links:", len(upLinks))
-		fmt.Println("Down links:", len(downLinks))
+		fmt.Println("Down links:", len(downLinks)) */
 	default:
 		fmt.Println("Expected 'check' command")
 		fmt.Println("Eg: $ linkDetector check ...")
