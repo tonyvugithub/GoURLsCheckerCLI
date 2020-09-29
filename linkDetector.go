@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	summary   models.CheckSummary
 	upLinks   []string
 	downLinks []string
 )
@@ -94,31 +95,38 @@ func main() {
 		}
 
 		wg.Wait()
+		break
 
-		/* fmt.Println("Total links:", len(upLinks)+len(downLinks))
-		fmt.Println("Up links:", len(upLinks))
-		fmt.Println("Down links:", len(downLinks)) */
 	default:
 		fmt.Println("Expected 'check' command")
 		fmt.Println("Eg: $ linkDetector check ...")
 		os.Exit(1)
 	}
+
+	numUpLinks := summary.GetNumUpLinks()
+	numDownLinks := summary.GetNumDownLinks()
+	fmt.Println("Total links:", numUpLinks+numDownLinks)
+	fmt.Println("Up links:", numUpLinks)
+	fmt.Println("Down links:", numDownLinks)
 }
 
 func checkByFilepath(filepath string, channel chan models.LinkStatus) {
+	//Parses links to local variable
 	links := helpers.ParseLinks(helpers.ReadFromFile(filepath))
 
+	//Loop to check all links
 	for _, link := range links {
 		go helpers.CheckLink(link, channel)
 	}
+
 	//Receive the result from checkLink and update the link to correspondent lists
 	i := 0
 	for i < len(links) {
 		ls := <-channel
-		if ls.GetLiveStatus() == false {
-			downLinks = append(downLinks, ls.GetURL())
+		if ls.GetLiveStatus() == true {
+			summary.RecordUpLink(ls.GetURL())
 		} else {
-			upLinks = append(upLinks, ls.GetURL())
+			summary.RecordDownLink(ls.GetURL())
 		}
 		i++
 	}
