@@ -29,3 +29,12 @@
    ```go
     ./linkDetector check -d [directory-path-1] [directory-path-2] ... [directory-path-nth]
    ```
+5. Create report file by adding -r flag:
+   ```go
+    ./linkDetector check -f -r [file-name]
+   ```
+   ```go
+    ./linkDetector check -d -r [directory-path]
+   ```
+
+**Note: the order of flags does not matter but all flag need to follow main command and before file path / directory path arguments**
