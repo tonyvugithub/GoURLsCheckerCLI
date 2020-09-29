@@ -54,6 +54,7 @@ func main() {
 		flags := os.Args[2:]
 		dirFlag := checkCmd.Bool("d", false, "directory path input")
 		fileFlag := checkCmd.Bool("f", false, "file path input")
+		reportFlag := checkCmd.Bool("r", false, "check report")
 
 		checkCmd.Parse(flags)
 		args := checkCmd.Args()
@@ -62,7 +63,7 @@ func main() {
 		var wg sync.WaitGroup
 
 		//if directory flag was provided, check it by directory path
-		if *dirFlag {
+		if *dirFlag && !*fileFlag {
 			for _, dirPath := range args {
 				//Read all file from the directory path
 				files, err := ioutil.ReadDir(dirPath)
@@ -79,8 +80,10 @@ func main() {
 					}(filepath)
 				}
 			}
-			//If file flag was provided, check it by file path
-		} else if *fileFlag {
+		}
+
+		//If file flag was provided, check it by file path
+		if *fileFlag && !*dirFlag {
 			//Check by filenames
 			for _, file := range args {
 				wg.Add(1)
@@ -90,11 +93,15 @@ func main() {
 				}(file)
 			}
 			//Any other format would be invalid
-		} else {
-			fmt.Println("Invalid format!!! Please try again!!!")
 		}
 
 		wg.Wait()
+
+		if *reportFlag && (*fileFlag || *dirFlag) {
+			fmt.Println("Printing report...")
+		} else {
+			fmt.Println("Invalid format!!! Please try again!!!")
+		}
 		break
 
 	default:
