@@ -23,13 +23,26 @@
    ```
 3. Check multiple files:
    ```go
-    ./linkDetector check -f [file-name-1] [file-name-2] ... [file-name-nth]
+    \\For paths that contain space, simply wrap the path in quotes
+    ./linkDetector check -f [file-path-1] [file-path-2] ... [file-path-nth]
    ```
 4. Check all files in single or multiple directories:
    ```go
+    \\For paths that contain space, simply wrap the path in quotes
     ./linkDetector check -d [directory-path-1] [directory-path-2] ... [directory-path-nth]
    ```
-5. Create report file by adding -r flag:
+5. Allows user to pass glob pattern as argument:
+   Example: Uses as a standalone, The command would be applied to the current directory of the executable file
+   ```go
+    ./linkDetector -g *.html
+   ```
+   Example: Uses with -d flag
+   ```go
+    \\The glob pattern needs to be the last argument
+    ./linkDetector check -d -g "Absolute\Path\To\Your\Directory" *.txt
+   ```
+   
+6. Create report file by adding -r flag:
    ```go
     ./linkDetector check -f -r [file-name]
    ```

@@ -9,15 +9,14 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/mb0/glob"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/helpers"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/models"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/outputs"
 )
 
 var (
-	summary   models.CheckSummary
-	upLinks   []string
-	downLinks []string
+	summary models.CheckSummary
 )
 
 func main() {
@@ -45,6 +44,7 @@ func main() {
 			os.Exit(0)
 		} else {
 			fmt.Println("There should be no extra argument after -v/-version")
+			os.Exit(1)
 		}
 	}
 
@@ -55,6 +55,7 @@ func main() {
 		flags := os.Args[2:]
 		dirFlag := checkCmd.Bool("d", false, "directory path input")
 		fileFlag := checkCmd.Bool("f", false, "file path input")
+		globFlag := checkCmd.Bool("g", false, "glob pattern")
 		reportFlag := checkCmd.Bool("r", false, "check report")
 
 		checkCmd.Parse(flags)
@@ -65,57 +66,105 @@ func main() {
 
 		//if directory flag was provided, check it by directory path
 		if *dirFlag && !*fileFlag {
-			for _, dirPath := range args {
-				//Read all file from the directory path
-				files, err := ioutil.ReadDir(dirPath)
-				if err != nil {
-					log.Fatal(err)
-					os.Exit(1)
+			//If glob flag also provided
+			if *globFlag {
+				argsWithoutPattern := args[:len(args)-1]
+				//Assign the glob pattern provided to a local variable
+				pattern := args[len(args)-1]
+				//Create a globber object
+				globber, _ := glob.New(glob.Default())
+				for _, dirPath := range argsWithoutPattern {
+					//Read all file from the directory path
+					files, err := ioutil.ReadDir(dirPath)
+					if err != nil {
+						log.Fatal(err)
+						os.Exit(1)
+					}
+					for _, file := range files {
+						matched, _ := globber.Match(pattern, file.Name())
+						//If matched then run the url check on that file
+						if matched {
+							filepath := filepath.Join(dirPath, file.Name())
+							wg.Add(1)
+							go func(f string) {
+								defer wg.Done()
+								checkByFilepath(f, channel)
+							}(filepath)
+						}
+					}
 				}
-				for _, file := range files {
-					filepath := filepath.Join(dirPath, file.Name())
+			} else {
+				for _, dirPath := range args {
+					//Read all file from the directory path
+					files, err := ioutil.ReadDir(dirPath)
+					if err != nil {
+						log.Fatal(err)
+						os.Exit(1)
+					}
+					for _, file := range files {
+						filepath := filepath.Join(dirPath, file.Name())
+						wg.Add(1)
+						go func(f string) {
+							defer wg.Done()
+							checkByFilepath(f, channel)
+						}(filepath)
+					}
+				}
+			}
+		} else if *fileFlag && !*dirFlag {
+			//If file flag was provided, check it by file path
+			//Check by filenames
+			if *globFlag {
+				fmt.Println("Invalid format!!! Please try again!!!")
+			} else {
+				for _, file := range args {
 					wg.Add(1)
 					go func(f string) {
 						defer wg.Done()
 						checkByFilepath(f, channel)
-					}(filepath)
+					}(file)
 				}
 			}
-		}
-
-		//If file flag was provided, check it by file path
-		if *fileFlag && !*dirFlag {
-			//Check by filenames
-			for _, file := range args {
-				wg.Add(1)
-				go func(f string) {
-					defer wg.Done()
-					checkByFilepath(f, channel)
-				}(file)
+		} else if *globFlag {
+			//Assign the glob pattern provided to a local variable
+			pattern := args[0]
+			//Create a globber object
+			globber, _ := glob.New(glob.Default())
+			//Read files in the current directory
+			files, err := ioutil.ReadDir(".")
+			if err != nil {
+				log.Fatal(err)
+				os.Exit(1)
 			}
-			//Any other format would be invalid
+			for _, file := range files {
+				matched, _ := globber.Match(pattern, file.Name())
+				//If matched then run the url check on that file
+				if matched {
+					wg.Add(1)
+					go func(f string) {
+						defer wg.Done()
+						checkByFilepath(f, channel)
+					}(file.Name())
+				}
+			}
+		} else {
+			fmt.Println("Invalid format!!! Please try again!!!")
 		}
 
 		wg.Wait()
 
-		if *reportFlag && (*fileFlag || *dirFlag) {
+		//If there is a report flag then report to file report.txt
+		if *reportFlag {
 			writeReportToFile()
-		} else {
-			fmt.Println("Invalid format!!! Please try again!!!")
 		}
+
 		break
 
 	default:
 		fmt.Println("Expected 'check' command")
 		fmt.Println("Eg: $ linkDetector check ...")
-		os.Exit(1)
+		break
 	}
-
-	numUpLinks := summary.GetNumUpLinks()
-	numDownLinks := summary.GetNumDownLinks()
-	fmt.Println("Total links:", numUpLinks+numDownLinks)
-	fmt.Println("Up links:", numUpLinks)
-	fmt.Println("Down links:", numDownLinks)
 }
 
 func checkByFilepath(filepath string, channel chan models.LinkStatus) {
@@ -160,7 +209,7 @@ func writeReportToFile() {
 		f.WriteString(link + "\n")
 	}
 
-	f.WriteString("\nDOWN LINKS list:\n")
+	f.WriteString("\nUP LINKS list:\n")
 	for _, link := range summary.GetUpLinks() {
 		f.WriteString(link + "\n")
 	}
