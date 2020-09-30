@@ -23,12 +23,12 @@
    ```
 3. Check multiple files:
    ```go
-    \\For paths that contain space, simply wrap the path in quotes
+    //For paths that contain space, simply wrap the path in quotes
     ./linkDetector check -f [file-path-1] [file-path-2] ... [file-path-nth]
    ```
 4. Check all files in single or multiple directories:
    ```go
-    \\For paths that contain space, simply wrap the path in quotes
+    //For paths that contain space, simply wrap the path in quotes
     ./linkDetector check -d [directory-path-1] [directory-path-2] ... [directory-path-nth]
    ```
 5. Allows user to pass glob pattern as argument:<br/>
@@ -38,7 +38,7 @@
    ```
    Example: Uses with -d flag
    ```go
-    \\The glob pattern needs to be the last argument
+    //The glob pattern needs to be the last argument
     ./linkDetector check -d -g "Absolute\Path\To\Your\Directory" *.txt
    ```
    
