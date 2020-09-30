@@ -44,7 +44,7 @@
    
 6. Create report file by adding -r flag:
    ```go
-    ./linkDetector check -f -r [file-name]
+    ./linkDetector check -f -r [file-path]
    ```
    ```go
     ./linkDetector check -d -r [directory-path]
