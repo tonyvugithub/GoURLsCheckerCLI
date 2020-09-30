@@ -31,7 +31,7 @@
     \\For paths that contain space, simply wrap the path in quotes
     ./linkDetector check -d [directory-path-1] [directory-path-2] ... [directory-path-nth]
    ```
-5. Allows user to pass glob pattern as argument:
+5. Allows user to pass glob pattern as argument:<br/>
    Example: Uses as a standalone, The command would be applied to the current directory of the executable file
    ```go
     ./linkDetector -g *.html
