@@ -59,12 +59,11 @@ func main() {
 		reportFlag := checkCmd.Bool("r", false, "check report")
 
 		//Custom user-agent flag, using default user-agent for Go, access to http.defaultUserAgent deprecated
-		var userAgent string
-		checkCmd.StringVar(&userAgent, "u", "Go-http-client/1.1", "custom user-agent")
+		userAgent := checkCmd.String("u", "Go-http-client/1.1", "custom user-agent")
 
 		checkCmd.Parse(flags)
 
-		fmt.Println("Using User-Agent:", userAgent)
+		fmt.Println("Using User-Agent:", *userAgent)
 
 		args := checkCmd.Args()
 		//helpers.CheckValidArgsLen(args)
@@ -95,7 +94,7 @@ func main() {
 							wg.Add(1)
 							go func(f string) {
 								defer wg.Done()
-								checkByFilepath(f, channel, userAgent)
+								checkByFilepath(f, channel, *userAgent)
 							}(filepath)
 						}
 					}
@@ -113,7 +112,7 @@ func main() {
 						wg.Add(1)
 						go func(f string) {
 							defer wg.Done()
-							checkByFilepath(f, channel, userAgent)
+							checkByFilepath(f, channel, *userAgent)
 						}(filepath)
 					}
 				}
@@ -128,7 +127,7 @@ func main() {
 					wg.Add(1)
 					go func(f string) {
 						defer wg.Done()
-						checkByFilepath(f, channel, userAgent)
+						checkByFilepath(f, channel, *userAgent)
 					}(file)
 				}
 			}
@@ -150,7 +149,7 @@ func main() {
 					wg.Add(1)
 					go func(f string) {
 						defer wg.Done()
-						checkByFilepath(f, channel, userAgent)
+						checkByFilepath(f, channel, *userAgent)
 					}(file.Name())
 				}
 			}
