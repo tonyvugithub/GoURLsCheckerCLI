@@ -34,11 +34,16 @@ func ParseLinks(data string) []string {
 }
 
 //CheckLink ...
-func CheckLink(link string, c chan models.LinkStatus) {
+func CheckLink(link string, c chan models.LinkStatus, userAgent string) {
 	client := &http.Client{
 		Timeout: 2 * time.Second,
 	}
-	resp, err := client.Head(link)
+
+	req, err := http.NewRequest("HEAD", link, nil)
+
+	req.Header.Set("User-Agent", userAgent)
+
+	resp, err := client.Do(req)
 
 	if err != nil {
 		color.Gray.Println("[ERROR] " + link)
