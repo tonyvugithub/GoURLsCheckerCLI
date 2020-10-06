@@ -1,3 +1,2 @@
-linkDetector.exe
-test
-test_file
+*.txt
+*.exe
