@@ -22,7 +22,7 @@ var (
 )
 
 func main() {
-
+	//Create the channel for routine communication
 	channel := make(chan models.LinkStatus)
 	//version flag
 	flagVersionLong := flag.Bool("version", false, "version")
