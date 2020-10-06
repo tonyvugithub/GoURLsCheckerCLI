@@ -36,7 +36,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	//Check if version flag was provided
+	//Check if version flag was provided avsc
 	if *flagVersionLong || *flagVersionShort {
 		//If exactly 2 arguments, print the name and version of the app
 		if len(os.Args) == 2 {
