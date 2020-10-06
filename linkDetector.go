@@ -17,13 +17,10 @@ import (
 
 var (
 	summary models.CheckSummary
-	wg      sync.WaitGroup
 )
 
 func main() {
-	//Set default CLICOLOR Environment variable to 1, aka display link with color
-	os.Setenv("CLICOLOR", "1")
-	//Create communication channel for routines
+
 	channel := make(chan models.LinkStatus)
 	//version flag
 	flagVersionLong := flag.Bool("version", false, "version")
@@ -60,23 +57,42 @@ func main() {
 		fileFlag := checkCmd.Bool("f", false, "file path input")
 		globFlag := checkCmd.Bool("g", false, "glob pattern")
 		reportFlag := checkCmd.Bool("r", false, "check report")
-		/* allLinkFlag := checkCmd.Bool("all", true, "display all links")
-		goodLinkFlag := checkCmd.Bool("good", false, "display only good links")
-		badLinkFlag := checkCmd.Bool("bad", false, "display only bad links") */
-		//flagList := []*bool{dirFlag, fileFlag, globFlag, reportFlag}
-		//Parse flags for check subcommand
+
 		checkCmd.Parse(flags)
 		args := checkCmd.Args()
+		//helpers.CheckValidArgsLen(args)
+
+		var wg sync.WaitGroup
 
 		//if directory flag was provided, check it by directory path
 		if *dirFlag && !*fileFlag {
 			//If glob flag also provided
 			if *globFlag {
-				//Extract the list of directories provided
 				argsWithoutPattern := args[:len(args)-1]
-				//extract the pattern
+				//Assign the glob pattern provided to a local variable
 				pattern := args[len(args)-1]
-				checkWithGlobPattern(pattern, argsWithoutPattern, channel)
+				//Create a globber object
+				globber, _ := glob.New(glob.Default())
+				for _, dirPath := range argsWithoutPattern {
+					//Read all file from the directory path
+					files, err := ioutil.ReadDir(dirPath)
+					if err != nil {
+						log.Fatal(err)
+						os.Exit(1)
+					}
+					for _, file := range files {
+						matched, _ := globber.Match(pattern, file.Name())
+						//If matched then run the url check on that file
+						if matched {
+							filepath := filepath.Join(dirPath, file.Name())
+							wg.Add(1)
+							go func(f string) {
+								defer wg.Done()
+								checkByFilepath(f, channel)
+							}(filepath)
+						}
+					}
+				}
 			} else {
 				for _, dirPath := range args {
 					//Read all file from the directory path
@@ -97,6 +113,7 @@ func main() {
 			}
 		} else if *fileFlag && !*dirFlag {
 			//If file flag was provided, check it by file path
+			//Check by filenames
 			if *globFlag {
 				fmt.Println("Invalid format!!! Please try again!!!")
 			} else {
@@ -111,7 +128,25 @@ func main() {
 		} else if *globFlag {
 			//Assign the glob pattern provided to a local variable
 			pattern := args[0]
-			checkWithGlobPattern(pattern, []string{"."}, channel)
+			//Create a globber object
+			globber, _ := glob.New(glob.Default())
+			//Read files in the current directory
+			files, err := ioutil.ReadDir(".")
+			if err != nil {
+				log.Fatal(err)
+				os.Exit(1)
+			}
+			for _, file := range files {
+				matched, _ := globber.Match(pattern, file.Name())
+				//If matched then run the url check on that file
+				if matched {
+					wg.Add(1)
+					go func(f string) {
+						defer wg.Done()
+						checkByFilepath(f, channel)
+					}(file.Name())
+				}
+			}
 		} else {
 			fmt.Println("Invalid format!!! Please try again!!!")
 		}
@@ -129,31 +164,6 @@ func main() {
 		fmt.Println("Expected 'check' command")
 		fmt.Println("Eg: $ linkDetector check ...")
 		break
-	}
-}
-
-func checkWithGlobPattern(pattern string, dirList []string, channel chan models.LinkStatus) {
-	//Create a globber object
-	globber, _ := glob.New(glob.Default())
-	for _, dirPath := range dirList {
-		//Read all file from the directory path
-		files, err := ioutil.ReadDir(dirPath)
-		if err != nil {
-			log.Fatal(err)
-			os.Exit(1)
-		}
-		for _, file := range files {
-			matched, _ := globber.Match(pattern, file.Name())
-			//If matched then run the url check on that file
-			if matched {
-				filepath := filepath.Join(dirPath, file.Name())
-				wg.Add(1)
-				go func(f string) {
-					defer wg.Done()
-					checkByFilepath(f, channel)
-				}(filepath)
-			}
-		}
 	}
 }
 

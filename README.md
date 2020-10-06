@@ -50,4 +50,13 @@
     ./linkDetector check -d -r [directory-path]
    ```
 
+7. Use custom User-Agents with the -u flag:
+   ```go
+    ./linkDetector check -u [User-Agent string] -f [file-path]
+   ```
+   an example using a Firefox User-Agent:
+   ```go
+    ./linkDetector check -u "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0" -f [file-path]
+   ```
+
 **Note: the order of flags does not matter but all flags need to follow main command and before any file path / directory path arguments**
