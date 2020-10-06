@@ -90,5 +90,4 @@ func checkLinkNoColor(resp *http.Response, link string) {
 	} else {
 		fmt.Println(statusFormatted, link)
 	}
-
 }
