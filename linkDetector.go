@@ -98,7 +98,7 @@ func main() {
 			//If file flag was provided, check it by file path
 			//Check by filenames
 			if *globFlag {
-				fmt.Println("Invalid format!!! Please try again!!!")
+				fmt.Println("-f flag cannot go with -g flag, maybe you mean -d ?")
 			} else {
 				for _, file := range args {
 					wg.Add(1)
