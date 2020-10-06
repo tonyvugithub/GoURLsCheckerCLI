@@ -58,13 +58,7 @@ func main() {
 		globFlag := checkCmd.Bool("g", false, "glob pattern")
 		reportFlag := checkCmd.Bool("r", false, "check report")
 
-		//Custom user-agent flag, using default user-agent for Go, access to http.defaultUserAgent deprecated
-		userAgent := checkCmd.String("u", "Go-http-client/1.1", "custom user-agent")
-
 		checkCmd.Parse(flags)
-
-		fmt.Println("Using User-Agent:", *userAgent)
-
 		args := checkCmd.Args()
 		//helpers.CheckValidArgsLen(args)
 
@@ -94,7 +88,7 @@ func main() {
 							wg.Add(1)
 							go func(f string) {
 								defer wg.Done()
-								checkByFilepath(f, channel, *userAgent)
+								checkByFilepath(f, channel)
 							}(filepath)
 						}
 					}
@@ -112,7 +106,7 @@ func main() {
 						wg.Add(1)
 						go func(f string) {
 							defer wg.Done()
-							checkByFilepath(f, channel, *userAgent)
+							checkByFilepath(f, channel)
 						}(filepath)
 					}
 				}
@@ -127,7 +121,7 @@ func main() {
 					wg.Add(1)
 					go func(f string) {
 						defer wg.Done()
-						checkByFilepath(f, channel, *userAgent)
+						checkByFilepath(f, channel)
 					}(file)
 				}
 			}
@@ -149,7 +143,7 @@ func main() {
 					wg.Add(1)
 					go func(f string) {
 						defer wg.Done()
-						checkByFilepath(f, channel, *userAgent)
+						checkByFilepath(f, channel)
 					}(file.Name())
 				}
 			}
@@ -173,13 +167,13 @@ func main() {
 	}
 }
 
-func checkByFilepath(filepath string, channel chan models.LinkStatus, userAgent string) {
+func checkByFilepath(filepath string, channel chan models.LinkStatus) {
 	//Parses links to local variable
 	links := helpers.ParseLinks(helpers.ReadFromFile(filepath))
 
 	//Loop to check all links
 	for _, link := range links {
-		go helpers.CheckLink(link, channel, userAgent)
+		go helpers.CheckLink(link, channel)
 	}
 
 	//Receive the result from checkLink and update the link to correspondent lists
