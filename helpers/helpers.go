@@ -54,6 +54,22 @@ func CheckLink(link string, c chan models.LinkStatus, userAgent string) {
 		return
 	}
 
+	clicolorEnv := os.Getenv("CLICOLOR")
+
+	if clicolorEnv == "0" {
+		checkLinkNoColor(resp, link)
+	} else if clicolorEnv == "1" || clicolorEnv == "" {
+		checkLinkWithColor(resp, link)
+	}
+
+	ls := models.LinkStatus{}
+	ls.SetURL(link)
+	ls.SetLiveStatus(true)
+	c <- ls
+}
+
+//checkLinkWithColor ...
+func checkLinkWithColor(resp *http.Response, link string) {
 	statusFormatted := "[" + fmt.Sprint(resp.StatusCode, " ", http.StatusText(resp.StatusCode)) + "]"
 	if resp.StatusCode == 200 {
 		color.Green.Println(statusFormatted, link)
@@ -62,9 +78,16 @@ func CheckLink(link string, c chan models.LinkStatus, userAgent string) {
 	} else {
 		color.Gray.Println(statusFormatted, link)
 	}
+}
 
-	ls := models.LinkStatus{}
-	ls.SetURL(link)
-	ls.SetLiveStatus(true)
-	c <- ls
+//checkLinkNoColor ...
+func checkLinkNoColor(resp *http.Response, link string) {
+	statusFormatted := "[" + fmt.Sprint(resp.StatusCode, " ", http.StatusText(resp.StatusCode)) + "]"
+	if resp.StatusCode == 200 {
+		fmt.Println(statusFormatted, link)
+	} else if resp.StatusCode == 400 || resp.StatusCode == 404 {
+		fmt.Println(statusFormatted, link)
+	} else {
+		fmt.Println(statusFormatted, link)
+	}
 }
