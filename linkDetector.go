@@ -137,6 +137,16 @@ func main() {
 		fmt.Println("Eg: $ linkDetector check ...")
 		break
 	}
+
+	//Exit with error code
+	numDownLinks := summary.GetNumDownLinks()
+	if numDownLinks > 0 {
+		fmt.Println("Exit with status code 1")
+		os.Exit(1)
+	}
+
+	fmt.Println("Exit with status code 0")
+	os.Exit(0)
 }
 
 func checkWithGlobPattern(pattern string, dirList []string, channel chan models.LinkStatus) {
