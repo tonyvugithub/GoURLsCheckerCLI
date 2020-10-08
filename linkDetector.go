@@ -60,8 +60,6 @@ func main() {
 		globFlag := checkCmd.Bool("g", false, "glob pattern")
 		reportFlag := checkCmd.Bool("r", false, "check report")
 
-		jsonFlag := checkCmd.Bool("j", false, "output to JSON")
-
 		//Custom user-agent flag, using default user-agent for Go, access to http.defaultUserAgent deprecated
 		userAgent = checkCmd.String("u", "Go-http-client/1.1", "custom user-agent")
 
@@ -123,11 +121,6 @@ func main() {
 		//If there is a -r flag then report to file report.txt
 		if *reportFlag {
 			writeReportToFile()
-		}
-
-		//If there is a -j flag then output it to JSON
-		if *jsonFlag {
-			toJSON()
 		}
 
 		break
