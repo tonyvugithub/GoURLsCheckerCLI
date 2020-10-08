@@ -189,10 +189,6 @@ func checkByFilepath(filepath string, channel chan models.LinkStatus, userAgent 
 	}
 }
 
-func toJSON() {
-
-}
-
 func writeReportToFile() {
 	f, err := os.OpenFile("report.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
