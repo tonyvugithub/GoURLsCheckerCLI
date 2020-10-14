@@ -119,10 +119,10 @@ func main() {
 			ignoreList := parseIgnoreListPattern(args[0]) // gets string with all links seprated by |
 			file := checkCmd.Arg(1)
 			fileData := helpers.ReadFromFile(file)
-			
+
 			if ignoreList != "" {
 
-				regLinkIgnore := regexp.MustCompile("(?m)^.*(" + ignoreList + ").*$") 
+				regLinkIgnore := regexp.MustCompile("(?m)^.*(" + ignoreList + ").*$")
 
 				fileData = regLinkIgnore.ReplaceAllString(fileData, "") // the urls from ignorelist are taken out of urls to check
 
@@ -257,13 +257,8 @@ func parseIgnoreListPattern(filePath string) string {
 	reg := regexp.MustCompile(`(?m)^#.*$`) // regex to find all comments in ignore file
 	fileData := helpers.ReadFromFile(filePath)
 	fileDataReplace := reg.ReplaceAllString(fileData, "") // delete all comments leaving only links
-	ignoreList := helpers.ParseLinks(fileDataReplace) // parses all valid links
-	if(fileData == fileDataReplace && len(ignoreList) == 0){
-		fmt.Println("no valid links")
-		os.Exit(1);
-	} else if len(ignoreList) == 0) {
+	ignoreList := helpers.ParseLinks(fileDataReplace)     // parses all valid links
 
-	}
 	return strings.Join(ignoreList[:], "|")
 
 }

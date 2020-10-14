@@ -59,4 +59,17 @@
     ./linkDetector check -u "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:81.0) Gecko/20100101 Firefox/81.0" -f [file-path]
    ```
 
+8. Ignore a list of urls:
+   ```go
+    ./linkDetector check -i [file-path-ignore-list] [file-path]
+   ```
+   A valid ignore list will have a # for comments and http/https links
+   For example:
+   ```
+   # ignore the canadian google links
+   https://google.ca
+   # this link wont be ignore https://netflix.com
+   https://www.spotify.com/
+   ```
+
 **Note: the order of flags does not matter but all flags need to follow main command and before any file path / directory path arguments**
