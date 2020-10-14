@@ -6,3 +6,5 @@ github.com/mb0/glob v0.0.0-20160210091149-1eb79d2de6c4/go.mod h1:FqD3ES5hx6zpzDa
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/tonyvugithub/GoURLsCheckerCLI v0.0.0-20201008012534-effe8848829f h1:pqBT+ulo5jFVUMA+HdVrf+w0O+fyQVBsBYidCE3ZbKs=
+github.com/tonyvugithub/GoURLsCheckerCLI v0.0.0-20201008012534-effe8848829f/go.mod h1:vpovbM3G8C9HH2mMZVBD+XZ5UCEuXcJwKfUtGpNdHN8=

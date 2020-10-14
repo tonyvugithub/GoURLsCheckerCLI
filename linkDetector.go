@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/mb0/glob"
@@ -59,6 +61,7 @@ func main() {
 		fileFlag := checkCmd.Bool("f", false, "file path input")
 		globFlag := checkCmd.Bool("g", false, "glob pattern")
 		reportFlag := checkCmd.Bool("r", false, "check report")
+		ignoreFlag := checkCmd.Bool("i", false, "ignore url list")
 
 		//Custom user-agent flag, using default user-agent for Go, access to http.defaultUserAgent deprecated
 		userAgent = checkCmd.String("u", "Go-http-client/1.1", "custom user-agent")
@@ -112,6 +115,38 @@ func main() {
 			//Assign the glob pattern provided to a local variable
 			pattern := args[0]
 			checkWithGlobPattern(pattern, []string{"."}, channel)
+		} else if *ignoreFlag {
+			ignoreList := parseIgnoreListPattern(args[0]) // gets string with all links seprated by |
+			file := checkCmd.Arg(1)
+			fileData := helpers.ReadFromFile(file)
+			
+			if ignoreList != "" {
+
+				regLinkIgnore := regexp.MustCompile("(?m)^.*(" + ignoreList + ").*$") 
+
+				fileData = regLinkIgnore.ReplaceAllString(fileData, "") // the urls from ignorelist are taken out of urls to check
+
+			} else {
+				fmt.Println("The ignore file as no valid urls. Therefore no urls will be ignored")
+			}
+			links := helpers.ParseLinks(fileData)
+			//Loop to check all links
+			for _, link := range links {
+				go helpers.CheckLink(link, channel, *userAgent)
+			}
+
+			//Receive the result from checkLink and update the link to correspondent lists
+			i := 0
+			for i < len(links) {
+				ls := <-channel
+				if ls.GetLiveStatus() == true {
+					summary.RecordUpLink(ls.GetURL())
+				} else {
+					summary.RecordDownLink(ls.GetURL())
+				}
+				i++
+			}
+
 		} else {
 			fmt.Println("Invalid format!!! Please try again!!!")
 		}
@@ -217,4 +252,18 @@ func writeReportToFile() {
 	if err := f.Close(); err != nil {
 		log.Fatal(err)
 	}
+}
+func parseIgnoreListPattern(filePath string) string {
+	reg := regexp.MustCompile(`(?m)^#.*$`) // regex to find all comments in ignore file
+	fileData := helpers.ReadFromFile(filePath)
+	fileDataReplace := reg.ReplaceAllString(fileData, "") // delete all comments leaving only links
+	ignoreList := helpers.ParseLinks(fileDataReplace) // parses all valid links
+	if(fileData == fileDataReplace && len(ignoreList) == 0){
+		fmt.Println("no valid links")
+		os.Exit(1);
+	} else if len(ignoreList) == 0) {
+
+	}
+	return strings.Join(ignoreList[:], "|")
+
 }
