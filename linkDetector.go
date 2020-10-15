@@ -122,12 +122,12 @@ func main() {
 
 			if ignoreList != "" {
 
-				regLinkIgnore := regexp.MustCompile("(?m)^.*(" + ignoreList + ").*$")
+				regLinkIgnore := regexp.MustCompile("(?m)^.*(" + ignoreList + ").*$") // finds all urls in ignore list
 
 				fileData = regLinkIgnore.ReplaceAllString(fileData, "") // the urls from ignorelist are taken out of urls to check
 
 			} else {
-				fmt.Println("The ignore file as no valid urls. Therefore no urls will be ignored")
+				fmt.Println("The ignore file as no urls. Therefore no urls will be ignored")
 			}
 			links := helpers.ParseLinks(fileData)
 			//Loop to check all links
@@ -259,6 +259,19 @@ func parseIgnoreListPattern(filePath string) string {
 	fileDataReplace := reg.ReplaceAllString(fileData, "") // delete all comments leaving only links
 	ignoreList := helpers.ParseLinks(fileDataReplace)     // parses all valid links
 
-	return strings.Join(ignoreList[:], "|")
+	str := strings.Join(ignoreList[:], "|")
+
+	if str != "" {
+		regLinkIgnore := regexp.MustCompile("(?m)^.*(" + str + ").*$") // finds all urls in ignore list
+
+		fileDataReplace = regLinkIgnore.ReplaceAllString(fileDataReplace, "") // the urls from ignorelist are taken out of urls to chec
+	}
+
+	if strings.TrimSpace(fileDataReplace) != "" { // if filedata is not empty than a bad link still exists
+		fmt.Println("Invalid ignore list")
+		os.Exit(1)
+
+	}
+	return str
 
 }
