@@ -3,18 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
 	"sync"
 
-	"github.com/mb0/glob"
-	"github.com/tonyvugithub/GoURLsCheckerCLI/helpers"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/models"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/outputs"
+	"github.com/zg3d/GoURLsCheckerCLI/lib/features"
+	"github.com/zg3d/GoURLsCheckerCLI/lib/utils"
 )
 
 var (
@@ -27,8 +22,7 @@ func main() {
 	//Create the channel for routine communication
 	channel := make(chan models.LinkStatus)
 	//version flag
-	flagVersionLong := flag.Bool("version", false, "version")
-	flagVersionShort := flag.Bool("v", false, "version")
+	versionFlag := flag.Bool("v", false, "version")
 	//Create check sub-command
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
 	//Parse command-line args
@@ -40,17 +34,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	//Check if version flag was provided avsc
-	if *flagVersionLong || *flagVersionShort {
-		//If exactly 2 arguments, print the name and version of the app
-		if len(os.Args) == 2 {
-			outputs.PrintVersion()
-			os.Exit(0)
-		} else {
-			fmt.Println("There should be no extra argument after -v/-version")
-			os.Exit(1)
-		}
-	}
+	//Display the version of the app if -v provided
+	features.CheckVersion(versionFlag)
 
 	//Switch statement to consider what subcommand provided
 	switch os.Args[1] {
@@ -69,83 +54,30 @@ func main() {
 		checkCmd.Parse(flags)
 
 		args := checkCmd.Args()
-		//helpers.CheckValidArgsLen(args)
 
-		//if directory flag was provided, check it by directory path
 		if *dirFlag && !*fileFlag {
-			//If glob flag also provided
-			if *globFlag {
-				argsWithoutPattern := args[:len(args)-1]
-				//Assign the glob pattern provided to a local variable
-				pattern := args[len(args)-1]
-				checkWithGlobPattern(pattern, argsWithoutPattern, channel)
-			} else {
-				for _, dirPath := range args {
-					//Read all file from the directory path
-					files, err := ioutil.ReadDir(dirPath)
-					if err != nil {
-						log.Fatal(err)
-						os.Exit(1)
-					}
-					for _, file := range files {
-						filepath := filepath.Join(dirPath, file.Name())
-						wg.Add(1)
-						go func(f string) {
-							defer wg.Done()
-							checkByFilepath(f, channel, *userAgent)
-						}(filepath)
-					}
-				}
-			}
+
+			//if directory flag was provided, check it by directory path
+			features.CheckWithDirectoryFlag(globFlag, args, channel, &wg, userAgent, &summary)
+
 		} else if *fileFlag && !*dirFlag {
-			//If file flag was provided, check it by file path
-			//Check by filenames
-			if *globFlag {
-				fmt.Println("-f flag cannot go with -g flag, maybe you mean -d ?")
-			} else {
-				for _, file := range args {
-					wg.Add(1)
-					go func(f string) {
-						defer wg.Done()
-						checkByFilepath(f, channel, *userAgent)
-					}(file)
-				}
-			}
+
+			//If file flag was provided, check it by Check by filepaths
+			features.CheckWithFileFlag(globFlag, args, channel, &wg, userAgent, &summary)
+
 		} else if *globFlag {
+
+			//If provided only -g flag then check the current directory
 			//Assign the glob pattern provided to a local variable
 			pattern := args[0]
-			checkWithGlobPattern(pattern, []string{"."}, channel)
+			features.CheckWithGlobFlag(pattern, []string{"."}, channel, &wg, userAgent, &summary)
+
 		} else if *ignoreFlag {
-			ignoreList := parseIgnoreListPattern(args[0]) // gets string with all links seprated by |
-			file := checkCmd.Arg(1)
-			fileData := helpers.ReadFromFile(file)
 
-			if ignoreList != "" {
+			ignoreList := utils.ParseIgnoreListPattern(args[0]) // gets string with all links seprated by |
+			file := args[1]
 
-				regLinkIgnore := regexp.MustCompile("(?m)^.*(" + ignoreList + ").*$") // finds all urls in ignore list
-
-				fileData = regLinkIgnore.ReplaceAllString(fileData, "") // the urls from ignorelist are taken out of urls to check
-
-			} else {
-				fmt.Println("The ignore file as no urls. Therefore no urls will be ignored")
-			}
-			links := helpers.ParseLinks(fileData)
-			//Loop to check all links
-			for _, link := range links {
-				go helpers.CheckLink(link, channel, *userAgent)
-			}
-
-			//Receive the result from checkLink and update the link to correspondent lists
-			i := 0
-			for i < len(links) {
-				ls := <-channel
-				if ls.GetLiveStatus() == true {
-					summary.RecordUpLink(ls.GetURL())
-				} else {
-					summary.RecordDownLink(ls.GetURL())
-				}
-				i++
-			}
+			features.CheckWithIgnoreFlag(ignoreList, file, channel, userAgent, &summary)
 
 		} else {
 			fmt.Println("Invalid format!!! Please try again!!!")
@@ -155,7 +87,7 @@ func main() {
 
 		//If there is a -r flag then report to file report.txt
 		if *reportFlag {
-			writeReportToFile()
+			utils.WriteReportToFile(summary)
 		}
 
 		break
@@ -175,103 +107,4 @@ func main() {
 
 	fmt.Println("Exit with status code 0")
 	os.Exit(0)
-}
-
-func checkWithGlobPattern(pattern string, dirList []string, channel chan models.LinkStatus) {
-	//Create a globber object
-	globber, _ := glob.New(glob.Default())
-	for _, dirPath := range dirList {
-		//Read all file from the directory path
-		files, err := ioutil.ReadDir(dirPath)
-		if err != nil {
-			log.Fatal(err)
-			os.Exit(1)
-		}
-		for _, file := range files {
-			matched, _ := globber.Match(pattern, file.Name())
-			//If matched then run the url check on that file
-			if matched {
-				filepath := filepath.Join(dirPath, file.Name())
-				wg.Add(1)
-				go func(f string) {
-					defer wg.Done()
-					checkByFilepath(f, channel, *userAgent)
-				}(filepath)
-			}
-		}
-	}
-}
-
-func checkByFilepath(filepath string, channel chan models.LinkStatus, userAgent string) {
-	//Parses links to local variable
-	links := helpers.ParseLinks(helpers.ReadFromFile(filepath))
-
-	//Loop to check all links
-	for _, link := range links {
-		go helpers.CheckLink(link, channel, userAgent)
-	}
-
-	//Receive the result from checkLink and update the link to correspondent lists
-	i := 0
-	for i < len(links) {
-		ls := <-channel
-		if ls.GetLiveStatus() == true {
-			summary.RecordUpLink(ls.GetURL())
-		} else {
-			summary.RecordDownLink(ls.GetURL())
-		}
-		i++
-	}
-}
-
-func writeReportToFile() {
-	f, err := os.OpenFile("report.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	numUpLinks := summary.GetNumUpLinks()
-	numDownLinks := summary.GetNumDownLinks()
-
-	f.WriteString("CHECK REPORT\n\n")
-
-	f.WriteString("Total number of links checked: " + fmt.Sprint(numUpLinks+numDownLinks) + "\n")
-	f.WriteString("Total number of up links: " + fmt.Sprint(numUpLinks) + "\n")
-	f.WriteString("Total number of down links: " + fmt.Sprint(numDownLinks) + "\n")
-
-	f.WriteString("\nDOWN LINKS list:\n")
-	for _, link := range summary.GetDownLinks() {
-		f.WriteString(link + "\n")
-	}
-
-	f.WriteString("\nUP LINKS list:\n")
-	for _, link := range summary.GetUpLinks() {
-		f.WriteString(link + "\n")
-	}
-
-	if err := f.Close(); err != nil {
-		log.Fatal(err)
-	}
-}
-func parseIgnoreListPattern(filePath string) string {
-	reg := regexp.MustCompile(`(?m)^#.*$`) // regex to find all comments in ignore file
-	fileData := helpers.ReadFromFile(filePath)
-	fileDataReplace := reg.ReplaceAllString(fileData, "") // delete all comments leaving only links
-	ignoreList := helpers.ParseLinks(fileDataReplace)     // parses all valid links
-
-	str := strings.Join(ignoreList[:], "|")
-
-	if str != "" {
-		regLinkIgnore := regexp.MustCompile("(?m)^.*(" + str + ").*$") // finds all urls in ignore list
-
-		fileDataReplace = regLinkIgnore.ReplaceAllString(fileDataReplace, "") // the urls from ignorelist are taken out of urls to chec
-	}
-
-	if strings.TrimSpace(fileDataReplace) != "" { // if filedata is not empty than a bad link still exists
-		fmt.Println("Invalid ignore list")
-		os.Exit(1)
-
-	}
-	return str
-
 }
