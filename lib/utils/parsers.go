@@ -5,8 +5,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/tonyvugithub/GoURLsCheckerCLI/helpers"
 )
 
 //ParseLinks all valid URLs from a string data
@@ -22,9 +20,9 @@ func ParseLinks(data string) []string {
 //ParseIgnoreListPattern to parse link to ignore in check from a text file
 func ParseIgnoreListPattern(filePath string) string {
 	reg := regexp.MustCompile(`(?m)^#.*$`) // regex to find all comments in ignore file
-	fileData := helpers.ReadFromFile(filePath)
+	fileData := ReadFromFile(filePath)
 	fileDataReplace := reg.ReplaceAllString(fileData, "") // delete all comments leaving only links
-	ignoreList := helpers.ParseLinks(fileDataReplace)     // parses all valid links
+	ignoreList := ParseLinks(fileDataReplace)             // parses all valid links
 
 	str := strings.Join(ignoreList[:], "|")
 

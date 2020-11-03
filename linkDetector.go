@@ -6,10 +6,9 @@ import (
 	"os"
 	"sync"
 
+	"github.com/tonyvugithub/GoURLsCheckerCLI/lib/features"
+	"github.com/tonyvugithub/GoURLsCheckerCLI/lib/utils"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/models"
-	"github.com/tonyvugithub/GoURLsCheckerCLI/outputs"
-	"github.com/zg3d/GoURLsCheckerCLI/lib/features"
-	"github.com/zg3d/GoURLsCheckerCLI/lib/utils"
 )
 
 var (
@@ -23,14 +22,15 @@ func main() {
 	channel := make(chan models.LinkStatus)
 	//version flag
 	versionFlag := flag.Bool("v", false, "version")
-	//Create check sub-command
+	//Create sub-command
 	checkCmd := flag.NewFlagSet("check", flag.ExitOnError)
+	//flag.NewFlagSet("checkTelescope", flag.ExitOnError)
 	//Parse command-line args
 	flag.Parse()
 
 	//If there is only program name as argument, print help panel
 	if len(os.Args) < 2 {
-		outputs.DisplayHelpPanel()
+		utils.DisplayHelpPanel()
 		os.Exit(0)
 	}
 
@@ -47,6 +47,7 @@ func main() {
 		globFlag := checkCmd.Bool("g", false, "glob pattern")
 		reportFlag := checkCmd.Bool("r", false, "check report")
 		ignoreFlag := checkCmd.Bool("i", false, "ignore url list")
+		telescopeFlag := checkCmd.Bool("t", false, "check links from Telescope posts")
 
 		//Custom user-agent flag, using default user-agent for Go, access to http.defaultUserAgent deprecated
 		userAgent = checkCmd.String("u", "Go-http-client/1.1", "custom user-agent")
@@ -79,6 +80,8 @@ func main() {
 
 			features.CheckWithIgnoreFlag(ignoreList, file, channel, userAgent, &summary)
 
+		} else if *telescopeFlag {
+			features.CheckTelescopePosts(channel, userAgent, &summary)
 		} else {
 			fmt.Println("Invalid format!!! Please try again!!!")
 		}
@@ -91,7 +94,6 @@ func main() {
 		}
 
 		break
-
 	default:
 		fmt.Println("Expected 'check' command")
 		fmt.Println("Eg: $ linkDetector check ...")

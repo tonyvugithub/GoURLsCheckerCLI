@@ -1,18 +1,19 @@
 package features
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sync"
 
 	"github.com/mb0/glob"
-	"github.com/tonyvugithub/GoURLsCheckerCLI/helpers"
+	"github.com/tonyvugithub/GoURLsCheckerCLI/lib/utils"
 	"github.com/tonyvugithub/GoURLsCheckerCLI/models"
-	"github.com/tonyvugithub/GoURLsCheckerCLI/outputs"
 )
 
 //CheckVersion to display the current version of the app
@@ -21,7 +22,7 @@ func CheckVersion(versionFlag *bool) {
 	if *versionFlag {
 		//If exactly 2 arguments, print the name and version of the app
 		if len(os.Args) == 2 {
-			outputs.PrintVersion()
+			utils.PrintVersion()
 			os.Exit(0)
 		} else {
 			fmt.Println("There should be no extra argument after -v/-version")
@@ -101,7 +102,7 @@ func CheckWithGlobFlag(pattern string, dirList []string, channel chan models.Lin
 //CheckWithIgnoreFlag to run link checking with -i flag
 func CheckWithIgnoreFlag(ignoreList string, file string, channel chan models.LinkStatus, userAgent *string, summary *models.CheckSummary) {
 
-	fileData := helpers.ReadFromFile(file)
+	fileData := utils.ReadFromFile(file)
 
 	if ignoreList != "" {
 
@@ -112,10 +113,10 @@ func CheckWithIgnoreFlag(ignoreList string, file string, channel chan models.Lin
 	} else {
 		fmt.Println("The ignore file as no urls. Therefore no urls will be ignored")
 	}
-	links := helpers.ParseLinks(fileData)
+	links := utils.ParseLinks(fileData)
 	//Loop to check all links
 	for _, link := range links {
-		go helpers.CheckLink(link, channel, *userAgent)
+		go utils.CheckLink(link, channel, *userAgent)
 	}
 
 	//Receive the result from checkLink and update the link to correspondent lists
@@ -131,14 +132,89 @@ func CheckWithIgnoreFlag(ignoreList string, file string, channel chan models.Lin
 	}
 }
 
+//CheckTelescopePosts to run link checking through the lastest 10 posts if Telescope
+func CheckTelescopePosts(channel chan models.LinkStatus, userAgent *string, summary *models.CheckSummary) {
+	rootURL := "http://localhost:3000"
+
+	//Get the JSON array of 10 latest posts
+	resp, err := http.Get(rootURL + "/posts")
+
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	//Store the body of response
+	body, err := ioutil.ReadAll(resp.Body)
+
+	//The type of object in the json array
+	type Post struct {
+		ID  string
+		URL string
+	}
+
+	var posts []Post //Variable to store the decoded json
+
+	//Decode the JSON
+	if err := json.Unmarshal(body, &posts); err != nil {
+		panic(err)
+	}
+
+	//Set up custom client to fetch from post links from above
+	client := &http.Client{}
+
+	for _, post := range posts {
+		//Customize the request
+		req, reqErr := http.NewRequest("GET", rootURL+post.URL, nil)
+
+		if reqErr != nil {
+			log.Fatal(reqErr)
+			os.Exit(1)
+		}
+		//Set Header in request to accept response as plain text
+		req.Header.Set("Accept", "text/html")
+		resp, respErr := client.Do(req)
+		if respErr != nil {
+			log.Fatal(respErr)
+			os.Exit(1)
+		}
+
+		data, _ := ioutil.ReadAll(resp.Body)
+
+		links := utils.ParseLinks(string(data))
+
+		fmt.Println("Checking link in post " + post.ID + ":")
+		if len(links) == 0 {
+			fmt.Println("--- No links to check ---")
+		}
+		for _, link := range links {
+			go utils.CheckLink(link, channel, *userAgent)
+		}
+
+		//Receive the result from checkLink and ensure that all links in 1 post returned before moving to next post
+		i := 0
+		for i < len(links) {
+			ls := <-channel
+			if ls.GetLiveStatus() == true {
+				summary.RecordUpLink(ls.GetURL())
+			} else {
+				summary.RecordDownLink(ls.GetURL())
+			}
+			i++
+		}
+		fmt.Println()
+	}
+}
+
 //Helper function to remove duplicate code
 func checkByFilepath(filepath string, channel chan models.LinkStatus, userAgent string, summary *models.CheckSummary) {
 	//Parses links to local variable
-	links := helpers.ParseLinks(helpers.ReadFromFile(filepath))
+	links := utils.ParseLinks(utils.ReadFromFile(filepath))
 
 	//Loop to check all links
 	for _, link := range links {
-		go helpers.CheckLink(link, channel, userAgent)
+		go utils.CheckLink(link, channel, userAgent)
 	}
 
 	//Receive the result from checkLink and update the link to correspondent lists
