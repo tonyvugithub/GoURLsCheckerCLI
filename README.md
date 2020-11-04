@@ -71,5 +71,8 @@
    # this link wont be ignore https://netflix.com
    https://www.spotify.com/
    ```
-
+9. Check the latest 10 post of [Telescope](https://github.com/Seneca-CDOT/telescope) posts
+  ```go
+    ./linkDetector check -t 
+  ```
 **Note: the order of flags does not matter but all flags need to follow main command and before any file path / directory path arguments**
