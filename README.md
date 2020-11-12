@@ -2,16 +2,6 @@
 
 **Description**: This is a basic URL checker written in GO. The app allows users to pass in a file name as a command-line argument, then it would extract all valid URLs and run status check on those urls.
 
-## How to use? 
-1. Build binary file:
-   ```go
-      go build linkDetector.go
-   ``` 
-2. Run the file:
-   ```go
-      ./linkDetector check -f [file-name]
-   ```
-
 ## Features
 1. Display help panel by not include any argument
    ```go

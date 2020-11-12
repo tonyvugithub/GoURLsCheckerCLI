@@ -1,0 +1,21 @@
+{
+  "go.buildOnSave": "off",
+  "go.lintOnSave": "package",
+  "go.vetOnSave": "off",
+  "go.buildFlags": [],
+  "go.lintFlags": [],
+  "go.vetFlags": [],
+  "go.lintTool": "golint",
+  "go.coverOnSave": false,
+  "go.testOnSave" : false,
+  "go.useCodeSnippetsOnFunctionSuggest": false,
+  "go.formatTool": "gofmt",
+  "[go]": {
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+  }
+}
