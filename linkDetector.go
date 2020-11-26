@@ -74,8 +74,10 @@ func main() {
 			features.CheckWithGlobFlag(pattern, []string{"."}, channel, &wg, userAgent, &summary)
 
 		} else if *ignoreFlag {
+			filePath := args[0]
+			fileData := utils.ReadFromFile(filePath)
 
-			ignoreList := utils.ParseIgnoreListPattern(args[0]) // gets string with all links seprated by |
+			ignoreList := utils.ParseIgnoreListPattern(fileData) // gets string with all links seprated by |
 			file := args[1]
 
 			features.CheckWithIgnoreFlag(ignoreList, file, channel, userAgent, &summary)

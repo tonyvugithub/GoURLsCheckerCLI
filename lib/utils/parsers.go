@@ -18,9 +18,8 @@ func ParseLinks(data string) []string {
 }
 
 //ParseIgnoreListPattern to parse link to ignore in check from a text file
-func ParseIgnoreListPattern(filePath string) string {
-	reg := regexp.MustCompile(`(?m)^#.*$`) // regex to find all comments in ignore file
-	fileData := ReadFromFile(filePath)
+func ParseIgnoreListPattern(fileData string) string {
+	reg := regexp.MustCompile(`(?m)^#.*$`)                // regex to find all comments in ignore file
 	fileDataReplace := reg.ReplaceAllString(fileData, "") // delete all comments leaving only links
 	ignoreList := ParseLinks(fileDataReplace)             // parses all valid links
 
@@ -35,7 +34,7 @@ func ParseIgnoreListPattern(filePath string) string {
 	if strings.TrimSpace(fileDataReplace) != "" { // if filedata is not empty than a bad link still exists
 		fmt.Println("Invalid ignore list")
 		os.Exit(1)
-
 	}
+
 	return str
 }
