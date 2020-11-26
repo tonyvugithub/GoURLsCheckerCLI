@@ -31,7 +31,7 @@ func TestParseLinksWithInvalidURL(t *testing.T) {
 }
 
 func TestParseIgnoreListPatternWithValidLink(t *testing.T) {
-	data := "https://www.example.com/main.html"
+	data := "# https://www.example.com/main.html"
 
 	result := ParseIgnoreListPattern(data)
 
