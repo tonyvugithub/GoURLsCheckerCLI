@@ -9,7 +9,7 @@ import (
 	"github.com/tonyvugithub/GoURLsCheckerCLI/models"
 )
 
-func TestCheckLink(t *testing.T) {
+func TestCheckLink200Response(t *testing.T) {
 	// Mock a server here
 	srv := mockServer(200, "OK")
 
