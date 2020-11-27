@@ -42,6 +42,39 @@ func TestCheckLink200Response(t *testing.T) {
 	}
 }
 
+func TestCheckLink403Response(t *testing.T) {
+	// Mock a server here
+	srv := mockServer(403, "Forbidden")
+
+	// Close the server when done
+	defer srv.Close()
+
+	// Set up parameters for CheckLink function
+	c := make(chan models.LinkStatus)
+	userAgent := "Go-http-client/1.1" //Default User-Agent
+
+	// Waitgroup
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	// Make call to the mock server with the server's URL
+	go func() {
+		defer wg.Done()
+		CheckLink(srv.URL, c, userAgent)
+	}()
+
+	// Receive the result from the channel
+	result := <-c
+
+	wg.Wait()
+
+	resultStatus := result.GetLiveStatus()
+	// If the live status is true meaning it returns a 200, else 400 or 404
+	if resultStatus != true {
+		t.Errorf("CheckLink was incorrect, expect %t, received %t", true, resultStatus)
+	}
+}
+
 func TestCheckLinkWith404Response(t *testing.T) {
 	// Mock a server here
 	srv := mockServer(404, "Not Found")
