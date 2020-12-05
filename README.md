@@ -7,7 +7,7 @@
 ```go
    go build linkDetector.go
 ```
-2. At the folder you want the binary file to be and install it directly through `go get`
+2. Move to the folder you want the binary file to be and install it directly through `go get`
 ```go
    go get github.com/tonyvugithub/GoURLsCheckerCLI
 ```
